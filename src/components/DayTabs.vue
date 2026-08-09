@@ -19,7 +19,7 @@ const emit = defineEmits<{
       :key="day.id"
       type="button"
       role="tab"
-      class="day-tab"
+      class="day-tab glass-panel"
       :class="{ active: day.id === modelValue }"
       :aria-selected="day.id === modelValue"
       @click="emit('update:modelValue', day.id)"
@@ -42,27 +42,17 @@ const emit = defineEmits<{
 .day-tab {
   flex: 0 0 auto;
   min-width: 7.5rem;
-  border: 1px solid var(--line);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.65);
   padding: 0.7rem 0.9rem;
   text-align: left;
   cursor: pointer;
-  transition:
-    background 180ms var(--ease),
-    color 180ms var(--ease),
-    transform 180ms var(--ease),
-    border-color 180ms var(--ease);
+  transition: background 180ms var(--ease), border-color 180ms var(--ease);
 }
 
-.day-tab:hover {
-  transform: translateY(-1px);
-}
-
+.day-tab:hover,
 .day-tab.active {
-  background: var(--deep);
-  border-color: var(--deep);
-  color: #f4fffd;
+  background: var(--glass-bg-hover) !important;
+  border-color: rgba(255, 255, 255, 0.45) !important;
 }
 
 .day-label {

@@ -17,6 +17,15 @@
   --font-body: 'Manrope', system-ui, sans-serif;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --max: 1080px;
+  --glass-bg: rgba(255, 255, 255, 0.058);
+  --glass-bg-hover: rgba(255, 255, 255, 0.28);
+  --glass-bg-deep: rgba(11, 47, 56, 0.42);
+  --glass-border: rgba(255, 255, 255, 0.28);
+  --glass-filter: saturate(180%) blur(18px);
+  --glass-text: #ffffff;
+  --glass-text-soft: rgba(255, 255, 255, 0.82);
+  --ink-on-photo: #0a1c22;
+  --ink-soft-on-photo: #16323c;
 }
 
 *,
@@ -56,6 +65,8 @@ a {
 }
 
 #app {
+  position: relative;
+  z-index: 1;
   min-height: 100vh;
 }
 
@@ -112,6 +123,41 @@ a {
 .btn-danger {
   background: transparent;
   color: #b42318;
+}
+
+/* Shared frosted glass for editor / preview photo pages */
+.photo-shell .btn-secondary,
+.photo-shell .btn-ghost,
+.photo-shell .btn-danger,
+.photo-shell .btn-primary {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--glass-text);
+  box-shadow: none;
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+}
+
+.photo-shell .btn-secondary:hover,
+.photo-shell .btn-ghost:hover,
+.photo-shell .btn-primary:hover {
+  background: var(--glass-bg-hover);
+  color: var(--glass-text);
+}
+
+.photo-shell .btn-danger:hover {
+  background: var(--glass-bg-hover);
+  color: var(--glass-text);
+}
+
+/* Single source of truth for frosted panels (weather, cards, inputs) */
+.photo-shell .glass-panel {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  color: var(--glass-text);
+  backdrop-filter: var(--glass-filter) !important;
+  -webkit-backdrop-filter: var(--glass-filter) !important;
+  box-shadow: none;
 }
 
 .field {

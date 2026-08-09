@@ -53,6 +53,7 @@ const localItems = computed({
 
     <EmptyState
       v-else
+      class="glass-panel"
       title="这一天还是空白"
       description="添加景点、餐饮、交通或住宿，开始编排今天的节奏。"
     >
@@ -72,7 +73,6 @@ const localItems = computed({
 }
 
 :deep(.chosen) {
-  transform: scale(1.01);
   box-shadow: var(--shadow);
 }
 </style>

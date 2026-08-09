@@ -143,11 +143,43 @@ function onSubmit(): void {
 .sheet {
   width: min(100%, 520px);
   margin: 0 auto;
-  background: #f7fbfc;
+  color: var(--glass-text);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: 22px 22px 18px 18px;
   padding: 1.1rem 1.15rem 1.25rem;
   box-shadow: var(--shadow);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
   animation: rise 220ms var(--ease);
+}
+
+.sheet :deep(.btn-secondary),
+.sheet :deep(.btn-primary),
+.sheet :deep(.btn-ghost) {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--glass-text);
+  box-shadow: none;
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+}
+
+.sheet :deep(.field label) {
+  color: var(--glass-text-soft);
+}
+
+.sheet :deep(.field input),
+.sheet :deep(.field textarea),
+.sheet :deep(.field select) {
+  color: var(--glass-text);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--glass-border);
+}
+
+.sheet :deep(.field input::placeholder),
+.sheet :deep(.field textarea::placeholder) {
+  color: var(--glass-text-soft);
 }
 
 header {
@@ -161,6 +193,7 @@ h2 {
   margin: 0;
   font-family: var(--font-display);
   font-size: 1.35rem;
+  color: var(--glass-text);
 }
 
 .form {

@@ -18,7 +18,7 @@ const typeLabel = computed(() => ITEM_TYPE_LABELS[props.item.type])
 </script>
 
 <template>
-  <article class="item" :data-type="item.type">
+  <article class="item glass-panel" :data-type="item.type">
     <div class="drag-handle" aria-hidden="true" title="拖拽排序">⋮⋮</div>
     <div class="body">
       <div class="top">
@@ -57,10 +57,7 @@ const typeLabel = computed(() => ITEM_TYPE_LABELS[props.item.type])
   gap: 0.75rem;
   padding: 0.95rem 1rem;
   border-radius: var(--radius-sm);
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid var(--line);
   border-left: 4px solid var(--teal);
-  transition: box-shadow 180ms var(--ease), transform 180ms var(--ease);
 }
 
 .item[data-type='food'] {
@@ -82,7 +79,7 @@ const typeLabel = computed(() => ITEM_TYPE_LABELS[props.item.type])
 
 .drag-handle {
   cursor: grab;
-  color: var(--ink-soft);
+  color: var(--glass-text-soft);
   font-size: 0.95rem;
   line-height: 1.2;
   padding-top: 0.15rem;
@@ -100,26 +97,32 @@ const typeLabel = computed(() => ITEM_TYPE_LABELS[props.item.type])
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: var(--teal-deep);
+  color: var(--glass-text);
   text-transform: uppercase;
 }
 
 .time {
   font-size: 0.85rem;
-  color: var(--ink-soft);
+  color: var(--glass-text-soft);
 }
 
 h4 {
   margin: 0;
   font-size: 1.05rem;
+  color: var(--glass-text);
 }
 
 .place,
 .desc,
 .cost {
   margin: 0.3rem 0 0;
-  color: var(--ink-soft);
+  color: var(--glass-text-soft);
   font-size: 0.9rem;
+}
+
+.cost {
+  font-weight: 700;
+  color: var(--glass-text);
 }
 
 .actions {
@@ -131,10 +134,12 @@ h4 {
 }
 
 .move select {
-  border: 1px solid var(--line);
+  border: 1px solid var(--glass-border);
   border-radius: 999px;
   padding: 0.35rem 0.7rem;
-  background: #fff;
-  color: var(--ink-soft);
+  background: var(--glass-bg);
+  color: var(--glass-text);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
 }
 </style>

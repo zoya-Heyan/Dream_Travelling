@@ -2,6 +2,8 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import AddItemSheet from '@/components/AddItemSheet.vue'
 import DayTabs from '@/components/DayTabs.vue'
+import DestinationWeather from '@/components/DestinationWeather.vue'
+import HeroGlassBackdrop from '@/components/HeroGlassBackdrop.vue'
 import ItineraryTimeline from '@/components/ItineraryTimeline.vue'
 import { useTripsStore, type ItemInput } from '@/stores/trips'
 import type { Item } from '@/types/trip'
@@ -113,63 +115,72 @@ function flashSaved(): void {
 </script>
 
 <template>
-  <main class="page editor">
-    <div v-if="loading" class="state">加载行程中…</div>
+  <main class="page editor photo-shell">
+    <HeroGlassBackdrop />
+    <div class="page-content">
+      <div v-if="loading" class="state">加载行程中…</div>
 
-    <div v-else-if="notFound" class="state">
-      <p>找不到这条行程。</p>
-      <RouterLink class="btn btn-primary" to="/">回到首页</RouterLink>
-    </div>
+      <div v-else-if="notFound" class="state">
+        <p>找不到这条行程。</p>
+        <RouterLink class="btn btn-primary" to="/">回到首页</RouterLink>
+      </div>
 
-    <template v-else-if="bundle">
-      <header class="topbar">
-        <div>
-          <RouterLink class="back" to="/">← 全部行程</RouterLink>
-          <p class="destination">{{ bundle.trip.destination }}</p>
-          <h1>{{ bundle.trip.title }}</h1>
-          <p class="meta">
-            {{ formatDisplayDate(bundle.trip.startDate) }} —
-            {{ formatDisplayDate(bundle.trip.endDate) }}
-            · {{ dayCount(bundle.trip.startDate, bundle.trip.endDate) }} 天
-            · {{ stats.itemCount }} 个安排
-            <span v-if="stats.totalCost > 0"> · 预算约 ¥{{ stats.totalCost }}</span>
-          </p>
-        </div>
-        <div class="top-actions">
-          <span v-if="saveHint" class="save-hint">{{ saveHint }}</span>
-          <RouterLink class="btn btn-secondary" :to="`/trips/${id}/preview`">预览</RouterLink>
-          <button type="button" class="btn btn-primary" @click="openCreate">添加条目</button>
-        </div>
-      </header>
-
-      <DayTabs v-model="activeDayId" :days="bundle.days" />
-
-      <section v-if="activeDay" class="day-panel">
-        <div class="day-note">
-          <label for="day-note">今日备注</label>
-          <div class="note-row">
-            <input
-              id="day-note"
-              v-model="dayNoteDraft"
-              placeholder="天气、主题、节奏…（可选）"
-              @keydown.enter.prevent="saveDayNote"
-            />
-            <button type="button" class="btn btn-secondary" @click="saveDayNote">保存</button>
+      <template v-else-if="bundle">
+        <header class="topbar">
+          <div>
+            <RouterLink class="back" to="/">← 全部行程</RouterLink>
+            <p class="destination">{{ bundle.trip.destination }}</p>
+            <h1>{{ bundle.trip.title }}</h1>
+            <p class="meta">
+              {{ formatDisplayDate(bundle.trip.startDate) }} —
+              {{ formatDisplayDate(bundle.trip.endDate) }}
+              · {{ dayCount(bundle.trip.startDate, bundle.trip.endDate) }} 天
+              · {{ stats.itemCount }} 个安排
+              <span v-if="stats.totalCost > 0"> · 预算约 ¥{{ stats.totalCost }}</span>
+            </p>
           </div>
-        </div>
+          <div class="top-actions">
+            <span v-if="saveHint" class="save-hint">{{ saveHint }}</span>
+            <RouterLink class="btn btn-secondary" :to="`/trips/${id}/preview`">预览</RouterLink>
+            <button type="button" class="btn btn-primary" @click="openCreate">添加条目</button>
+          </div>
+        </header>
 
-        <ItineraryTimeline
-          :key="activeDay.id"
-          :items="dayItems"
-          :days="bundle.days"
-          @reorder="onReorder"
-          @edit="openEdit"
-          @remove="onRemove"
-          @move="onMove"
-          @add="openCreate"
-        />
-      </section>
-    </template>
+        <DayTabs v-model="activeDayId" :days="bundle.days" />
+
+        <section v-if="activeDay" class="day-panel">
+          <DestinationWeather
+            :destination="bundle.trip.destination"
+            :date="activeDay.date"
+          />
+
+          <div class="day-note">
+            <label for="day-note">今日备注</label>
+            <div class="note-row">
+              <input
+                id="day-note"
+                class="glass-panel"
+                v-model="dayNoteDraft"
+                placeholder="天气、主题、节奏…（可选）"
+                @keydown.enter.prevent="saveDayNote"
+              />
+              <button type="button" class="btn btn-secondary" @click="saveDayNote">保存</button>
+            </div>
+          </div>
+
+          <ItineraryTimeline
+            :key="activeDay.id"
+            :items="dayItems"
+            :days="bundle.days"
+            @reorder="onReorder"
+            @edit="openEdit"
+            @remove="onRemove"
+            @move="onMove"
+            @add="openCreate"
+          />
+        </section>
+      </template>
+    </div>
 
     <AddItemSheet
       :open="sheetOpen"
@@ -182,13 +193,32 @@ function flashSaved(): void {
 
 <style scoped>
 .editor {
+  position: relative;
+  z-index: 0;
   padding-bottom: 5rem;
+}
+
+.page-content {
+  position: relative;
+  z-index: 1;
+}
+
+.page-content :deep(.empty) {
+  color: var(--glass-text);
+}
+
+.page-content :deep(.empty h3) {
+  color: var(--glass-text);
+}
+
+.page-content :deep(.empty p) {
+  color: var(--glass-text-soft);
 }
 
 .state {
   padding: 4rem 0;
   text-align: center;
-  color: var(--ink-soft);
+  color: var(--ink-soft-on-photo);
   display: grid;
   gap: 1rem;
   justify-items: center;
@@ -203,14 +233,14 @@ function flashSaved(): void {
 }
 
 .back {
-  color: var(--ink-soft);
-  font-weight: 600;
+  color: var(--ink-on-photo);
+  font-weight: 700;
   font-size: 0.92rem;
 }
 
 .destination {
   margin: 0.55rem 0 0;
-  color: var(--teal-deep);
+  color: #0d5c54;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -222,11 +252,13 @@ h1 {
   font-family: var(--font-display);
   font-size: clamp(1.8rem, 4vw, 2.4rem);
   line-height: 1.15;
+  color: var(--ink-on-photo);
 }
 
 .meta {
   margin: 0.45rem 0 0;
-  color: var(--ink-soft);
+  color: var(--ink-soft-on-photo);
+  font-weight: 500;
 }
 
 .top-actions {
@@ -238,14 +270,17 @@ h1 {
 
 .save-hint {
   font-size: 0.85rem;
-  color: var(--teal-deep);
-  font-weight: 600;
+  color: #0d5c54;
+  font-weight: 700;
   animation: fade-in 180ms var(--ease);
 }
 
 .day-panel {
   margin-top: 0.35rem;
-  animation: panel-in 240ms var(--ease);
+}
+
+.day-panel :deep(.weather) {
+  margin-bottom: 1rem;
 }
 
 .day-note {
@@ -256,8 +291,8 @@ h1 {
   display: block;
   margin-bottom: 0.4rem;
   font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--ink-soft);
+  font-weight: 700;
+  color: var(--ink-on-photo);
 }
 
 .note-row {
@@ -267,21 +302,12 @@ h1 {
 }
 
 .note-row input {
-  border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   padding: 0.75rem 0.9rem;
-  background: rgba(255, 255, 255, 0.85);
 }
 
-@keyframes panel-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.note-row input::placeholder {
+  color: var(--glass-text-soft);
 }
 
 @keyframes fade-in {
