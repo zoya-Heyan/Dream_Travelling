@@ -12,13 +12,11 @@ const emit = defineEmits<{
 }>()
 
 const days = computed(() => dayCount(props.trip.startDate, props.trip.endDate))
-const toneClass = computed(() => `tone-${props.trip.coverTone ?? 'teal'}`)
 </script>
 
 <template>
-  <article class="trip-card" :class="toneClass">
+  <article class="trip-card glass-panel">
     <RouterLink class="trip-link" :to="`/trips/${trip.id}`">
-      <div class="trip-glow" aria-hidden="true" />
       <p class="destination">{{ trip.destination }}</p>
       <h3>{{ trip.title }}</h3>
       <p class="meta">
@@ -42,14 +40,12 @@ const toneClass = computed(() => `tone-${props.trip.coverTone ?? 'teal'}`)
   position: relative;
   overflow: hidden;
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid var(--line);
-  transition: transform 220ms var(--ease), box-shadow 220ms var(--ease);
+  transition: transform 220ms var(--ease), background 220ms var(--ease);
 }
 
 .trip-card:hover {
   transform: translateY(-3px);
-  box-shadow: var(--shadow);
+  background: var(--glass-bg-hover) !important;
 }
 
 .trip-link {
@@ -57,29 +53,7 @@ const toneClass = computed(() => `tone-${props.trip.coverTone ?? 'teal'}`)
   padding: 1.25rem 1.25rem 2.75rem;
   position: relative;
   z-index: 1;
-}
-
-.trip-glow {
-  position: absolute;
-  inset: auto -20% -40% auto;
-  width: 180px;
-  height: 180px;
-  border-radius: 50%;
-  opacity: 0.35;
-  pointer-events: none;
-}
-
-.tone-teal .trip-glow {
-  background: radial-gradient(circle, #1a9b8e, transparent 70%);
-}
-.tone-harbor .trip-glow {
-  background: radial-gradient(circle, #2f6f8f, transparent 70%);
-}
-.tone-sand .trip-glow {
-  background: radial-gradient(circle, #c4a35a, transparent 70%);
-}
-.tone-forest .trip-glow {
-  background: radial-gradient(circle, #3f7d5a, transparent 70%);
+  color: var(--glass-text);
 }
 
 .destination {
@@ -87,7 +61,7 @@ const toneClass = computed(() => `tone-${props.trip.coverTone ?? 'teal'}`)
   font-size: 0.82rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--teal-deep);
+  color: var(--glass-text);
   font-weight: 700;
 }
 
@@ -96,11 +70,12 @@ h3 {
   font-family: var(--font-display);
   font-size: 1.45rem;
   line-height: 1.2;
+  color: var(--glass-text);
 }
 
 .meta {
   margin: 0;
-  color: var(--ink-soft);
+  color: var(--glass-text-soft);
   font-size: 0.92rem;
 }
 

@@ -730,7 +730,8 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   display: block;
-  touch-action: none;
+  /* Allow page scroll; pointer events still drive ink interaction */
+  touch-action: pan-y;
   cursor: crosshair;
 }
 </style>
