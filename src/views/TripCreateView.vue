@@ -1,38 +1,20 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import TripForm from '@/components/TripForm.vue'
 import { useTripsStore } from '@/stores/trips'
-import { addDaysISO, todayISO } from '@/utils/dates'
 
 const store = useTripsStore()
 const router = useRouter()
 const submitting = ref(false)
-const error = ref('')
 
-const form = reactive({
-  title: '',
-  destination: '',
-  startDate: todayISO(),
-  endDate: addDaysISO(todayISO(), 2),
-})
-
-async function onSubmit(): Promise<void> {
-  error.value = ''
-  if (!form.title.trim() || !form.destination.trim()) {
-    error.value = '请填写标题和目的地'
-    return
-  }
-  if (form.endDate < form.startDate) {
-    error.value = '结束日期不能早于出发日期'
-    return
-  }
-
+async function onSubmit(payload: Parameters<typeof store.createTrip>[0]): Promise<void> {
   submitting.value = true
   try {
-    const trip = await store.createTrip({ ...form })
+    const trip = await store.createTrip(payload)
     await router.replace(`/trips/${trip.id}`)
   } catch {
-    error.value = '创建失败，请重试'
+    alert('创建失败，请重试')
   } finally {
     submitting.value = false
   }
@@ -44,41 +26,13 @@ async function onSubmit(): Promise<void> {
     <RouterLink class="back" to="/">← 返回</RouterLink>
     <header>
       <p class="eyebrow">New Trip</p>
-      <h1>新建行程</h1>
+      <h1>添加行程</h1>
       <p>选择日期后会自动生成 Day 1…N，之后可按天自由编排。</p>
     </header>
 
-    <form class="panel" @submit.prevent="onSubmit">
-      <div class="field">
-        <label for="title">行程标题</label>
-        <input id="title" v-model="form.title" required placeholder="例如：京都慢游四日" />
-      </div>
-
-      <div class="field">
-        <label for="destination">目的地</label>
-        <input id="destination" v-model="form.destination" required placeholder="例如：京都" />
-      </div>
-
-      <div class="row">
-        <div class="field">
-          <label for="start">出发日</label>
-          <input id="start" v-model="form.startDate" type="date" required />
-        </div>
-        <div class="field">
-          <label for="end">结束日</label>
-          <input id="end" v-model="form.endDate" type="date" required />
-        </div>
-      </div>
-
-      <p v-if="error" class="error">{{ error }}</p>
-
-      <div class="actions">
-        <RouterLink class="btn btn-secondary" to="/">取消</RouterLink>
-        <button type="submit" class="btn btn-primary" :disabled="submitting">
-          {{ submitting ? '创建中…' : '创建并开始编排' }}
-        </button>
-      </div>
-    </form>
+    <div class="panel">
+      <TripForm :submitting="submitting" @submit="onSubmit" @cancel="router.push('/')" />
+    </div>
   </main>
 </template>
 
@@ -116,37 +70,10 @@ header p {
 
 .panel {
   margin-top: 1.5rem;
-  display: grid;
-  gap: 1rem;
   padding: 1.25rem;
   border-radius: var(--radius);
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
-}
-
-.row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.85rem;
-}
-
-.error {
-  margin: 0;
-  color: #b42318;
-  font-size: 0.92rem;
-}
-
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.65rem;
-  margin-top: 0.25rem;
-}
-
-@media (max-width: 560px) {
-  .row {
-    grid-template-columns: 1fr;
-  }
 }
 </style>
