@@ -47,3 +47,5 @@ npm run preview
 - `VITE_RSSHUB_BASE`：自建或镜像 RSSHub 根地址（默认 `https://rsshub.app`）
 
 公开 RSSHub 实例可能限流或返回 403；单源失败不会影响其他渠道。建议生产环境配置自建 RSSHub。
+
+RSS / 游记仅展示标题与摘要并外链原文；不爬取需登录或付费的闭源接口。
