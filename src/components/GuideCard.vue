@@ -18,8 +18,15 @@ const kindLabel = computed(() => GUIDE_KIND_LABELS[props.item.kind])
 function onOpen(): void {
   if (props.item.canReadInApp && props.item.meta?.pageTitle) {
     const source = props.item.sourceId
-    const key = encodeURIComponent(props.item.meta.pageTitle)
-    void router.push(`/explore/guide/${source}/${key}`)
+    const id = props.item.meta.pageTitle
+    void router.push({
+      name: 'guide-detail',
+      params: { source, id },
+      query: {
+        ...(store.query.trim() ? { q: store.query.trim() } : {}),
+        ...(store.channel !== 'all' ? { channel: store.channel } : {}),
+      },
+    })
     return
   }
   if (props.item.url && props.item.url !== '#') {
@@ -97,15 +104,16 @@ function onOpen(): void {
 h3 {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.15rem;
-  line-height: 1.3;
+  font-size: 1.2rem;
+  line-height: 1.35;
   color: var(--ink-on-photo);
 }
 
 .summary {
-  margin: 0.45rem 0 0;
+  margin: 0.5rem 0 0;
   color: var(--ink-soft-on-photo);
-  font-size: 0.92rem;
+  font-size: 0.98rem;
+  line-height: 1.55;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -118,7 +126,7 @@ h3 {
   flex-wrap: wrap;
   gap: 0.65rem;
   align-items: center;
-  font-size: 0.8rem;
+  font-size: 0.84rem;
   color: var(--ink-soft-on-photo);
   font-weight: 600;
 }

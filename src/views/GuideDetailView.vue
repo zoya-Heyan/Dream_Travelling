@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import HeroGlassBackdrop from '@/components/HeroGlassBackdrop.vue'
 import { useGuidesStore } from '@/stores/guides'
+import type { GuideChannel } from '@/types/guide'
 
 const props = defineProps<{
   source: string
@@ -10,13 +11,29 @@ const props = defineProps<{
 }>()
 
 const route = useRoute()
+const router = useRouter()
 const store = useGuidesStore()
 
 const pageTitle = computed(() => decodeURIComponent(props.id))
+
 const backQuery = computed(() => {
-  const q = typeof route.query.q === 'string' ? route.query.q : ''
-  return q ? { q } : {}
+  const q = typeof route.query.q === 'string' ? route.query.q : store.query
+  const channelRaw = typeof route.query.channel === 'string' ? route.query.channel : store.channel
+  const channel = channelRaw as GuideChannel
+  return {
+    ...(q.trim() ? { q: q.trim() } : {}),
+    ...(channel && channel !== 'all' ? { channel } : {}),
+  }
 })
+
+function goBack(): void {
+  const back = window.history.state?.back
+  if (back != null) {
+    router.back()
+    return
+  }
+  void router.push({ name: 'explore', query: backQuery.value })
+}
 
 async function load(): Promise<void> {
   await store.loadDetail(props.source, props.id)
@@ -39,7 +56,7 @@ watch(
     <HeroGlassBackdrop />
     <div class="page-content">
       <header class="topbar">
-        <RouterLink class="back" :to="{ name: 'explore', query: backQuery }">← 返回资讯</RouterLink>
+        <button type="button" class="back" @click="goBack">← 返回上一页</button>
         <div class="actions">
           <a
             v-if="store.detail"
@@ -71,6 +88,17 @@ watch(
 </template>
 
 <style scoped>
+.detail.photo-shell {
+  --glass-bg: rgba(255, 255, 255, 0.68);
+  --glass-bg-hover: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(16, 42, 51, 0.14);
+  --glass-text: var(--ink);
+  --glass-text-soft: var(--ink-soft);
+  --ink-on-photo: var(--ink);
+  --ink-soft-on-photo: var(--ink-soft);
+  --glass-filter: saturate(180%) blur(18px);
+}
+
 .detail {
   position: relative;
   z-index: 0;
@@ -80,6 +108,7 @@ watch(
 .page-content {
   position: relative;
   z-index: 1;
+  width: 100%;
 }
 
 .topbar {
@@ -92,22 +121,28 @@ watch(
 }
 
 .back {
-  color: var(--ink-on-photo);
+  color: var(--ink);
   font-weight: 700;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .state {
   padding: 3rem 0;
   text-align: center;
-  color: var(--ink-soft-on-photo);
+  color: var(--ink-soft);
   display: grid;
   gap: 1rem;
   justify-items: center;
+  font-size: 1rem;
 }
 
 .article {
-  padding: 1.25rem 1.2rem 1.6rem;
+  padding: 1.35rem 1.35rem 1.8rem;
 }
 
 .eyebrow {
@@ -116,27 +151,28 @@ watch(
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
 }
 
 h1 {
   margin: 0.35rem 0 0;
   font-family: var(--font-display);
-  font-size: clamp(1.7rem, 4vw, 2.35rem);
-  line-height: 1.15;
-  color: var(--ink-on-photo);
+  font-size: clamp(1.75rem, 4vw, 2.4rem);
+  line-height: 1.2;
+  color: var(--ink);
 }
 
 .attr {
-  margin: 0.55rem 0 1.1rem;
-  color: var(--ink-soft-on-photo);
-  font-size: 0.86rem;
+  margin: 0.55rem 0 1.2rem;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  line-height: 1.45;
 }
 
 .wiki-body {
-  color: var(--ink-on-photo);
-  font-size: 0.98rem;
-  line-height: 1.7;
+  color: var(--ink);
+  font-size: 1.08rem;
+  line-height: 1.75;
   overflow-wrap: anywhere;
 }
 
@@ -144,13 +180,24 @@ h1 {
 .wiki-body :deep(h3),
 .wiki-body :deep(h4) {
   font-family: var(--font-display);
-  margin: 1.4rem 0 0.55rem;
-  line-height: 1.25;
+  margin: 1.5rem 0 0.6rem;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.wiki-body :deep(h2) {
+  font-size: 1.35rem;
+}
+
+.wiki-body :deep(h3) {
+  font-size: 1.18rem;
 }
 
 .wiki-body :deep(p),
 .wiki-body :deep(li) {
-  color: var(--ink-soft-on-photo);
+  color: var(--ink);
+  font-size: 1.08rem;
+  line-height: 1.75;
 }
 
 .wiki-body :deep(a) {

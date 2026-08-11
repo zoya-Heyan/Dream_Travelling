@@ -21,6 +21,16 @@ export const useGuidesStore = defineStore('guides', () => {
   const detail = ref<GuideDetail | null>(null)
   const detailLoading = ref(false)
   const detailError = ref('')
+  const listScrollY = ref(0)
+  const hasLoadedList = ref(false)
+
+  function saveListScroll(y: number): void {
+    listScrollY.value = y
+  }
+
+  function matchesBrowseState(nextQuery: string, nextChannel: GuideChannel): boolean {
+    return hasLoadedList.value && query.value === nextQuery && channel.value === nextChannel
+  }
 
   async function loadGuides(options?: { query?: string; channel?: GuideChannel }): Promise<void> {
     if (options?.query !== undefined) query.value = options.query
@@ -35,6 +45,7 @@ export const useGuidesStore = defineStore('guides', () => {
       })
       items.value = result.items
       errors.value = result.errors
+      hasLoadedList.value = true
     } finally {
       loading.value = false
     }
@@ -89,6 +100,10 @@ export const useGuidesStore = defineStore('guides', () => {
     detail,
     detailLoading,
     detailError,
+    listScrollY,
+    hasLoadedList,
+    saveListScroll,
+    matchesBrowseState,
     loadGuides,
     loadRelated,
     clearRelated,

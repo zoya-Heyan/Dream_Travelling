@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+defineOptions({ name: 'ExploreView' })
+
+import { computed, nextTick, onActivated, onDeactivated, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import EmptyState from '@/components/EmptyState.vue'
 import GuideCard from '@/components/GuideCard.vue'
@@ -20,46 +22,70 @@ const errorSummary = computed(() => {
   if (!store.errors.length) return ''
   const names = store.errors.slice(0, 3).map((e) => store.sourceLabel(e.sourceId))
   const more = store.errors.length > 3 ? ` 等 ${store.errors.length} 个` : ''
-  return `部分渠道暂不可用：${names.join('、')}${more}`
+  const prefix = store.items.length
+    ? `已加载 ${store.items.length} 条；部分渠道暂不可用：`
+    : '部分渠道暂不可用：'
+  return `${prefix}${names.join('、')}${more}`
 })
 
-async function refresh(): Promise<void> {
-  await store.loadGuides({
-    query: draftQuery.value,
-    channel: store.channel,
-  })
-}
-
-function setChannel(channel: GuideChannel): void {
-  store.channel = channel
-  void router.replace({
-    query: {
-      ...(draftQuery.value.trim() ? { q: draftQuery.value.trim() } : {}),
-      ...(channel !== 'all' ? { channel } : {}),
-    },
-  })
-  void refresh()
-}
-
-function onSearch(): void {
-  void router.replace({
-    query: {
-      ...(draftQuery.value.trim() ? { q: draftQuery.value.trim() } : {}),
-      ...(store.channel !== 'all' ? { channel: store.channel } : {}),
-    },
-  })
-  void refresh()
-}
-
-onMounted(() => {
+function parseRouteState(): { q: string; channel: GuideChannel } {
   const q = typeof route.query.q === 'string' ? route.query.q : ''
   const channel =
     typeof route.query.channel === 'string' && channels.includes(route.query.channel as GuideChannel)
       ? (route.query.channel as GuideChannel)
       : 'all'
+  return { q, channel }
+}
+
+function browseQuery(q: string, channel: GuideChannel): Record<string, string> {
+  return {
+    ...(q.trim() ? { q: q.trim() } : {}),
+    ...(channel !== 'all' ? { channel } : {}),
+  }
+}
+
+async function refresh(force = true): Promise<void> {
+  const q = draftQuery.value
+  const channel = store.channel
+  if (!force && store.matchesBrowseState(q, channel) && store.items.length > 0) {
+    return
+  }
+  await store.loadGuides({ query: q, channel })
+}
+
+async function ensureLoaded(force = false): Promise<void> {
+  const { q, channel } = parseRouteState()
   draftQuery.value = q
   store.channel = channel
-  void refresh()
+  await refresh(force)
+}
+
+function restoreScroll(): void {
+  const y = store.listScrollY
+  void nextTick(() => {
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: y, left: 0, behavior: 'auto' })
+    })
+  })
+}
+
+function setChannel(channel: GuideChannel): void {
+  store.channel = channel
+  void router.replace({ query: browseQuery(draftQuery.value, channel) })
+  void refresh(true)
+}
+
+function onSearch(): void {
+  void router.replace({ query: browseQuery(draftQuery.value, store.channel) })
+  void refresh(true)
+}
+
+onActivated(() => {
+  void ensureLoaded(false).then(() => restoreScroll())
+})
+
+onDeactivated(() => {
+  store.saveListScroll(window.scrollY || window.pageYOffset || 0)
 })
 
 watch(
@@ -73,7 +99,7 @@ watch(
     if (nextQ === draftQuery.value && nextChannel === store.channel) return
     draftQuery.value = nextQ
     store.channel = nextChannel
-    void refresh()
+    void refresh(true)
   },
 )
 </script>
@@ -87,7 +113,7 @@ watch(
           <RouterLink class="back" to="/">← 回到首页</RouterLink>
           <p class="eyebrow">Explore</p>
           <h1>资讯与攻略</h1>
-          <p class="lead">聚合 Wikivoyage、马蜂窝、Google 新闻、飞客等渠道，按目的地浏览旅行内容。</p>
+          <p class="lead">聚合 Wikivoyage、Tabiji、走进日本、国家地理等渠道，按目的地浏览旅行内容。</p>
         </div>
       </header>
 
@@ -129,7 +155,7 @@ watch(
         title="暂时没有内容"
         description="换个目的地试试，或切换频道。部分 RSS 渠道可能因网络/代理暂时失败。"
       >
-        <button type="button" class="btn btn-primary" @click="refresh">重新加载</button>
+        <button type="button" class="btn btn-primary" @click="() => refresh(true)">重新加载</button>
       </EmptyState>
 
       <div v-else class="grid">
@@ -150,6 +176,17 @@ watch(
 </template>
 
 <style scoped>
+.explore.photo-shell {
+  --glass-bg: rgba(255, 255, 255, 0.62);
+  --glass-bg-hover: rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(16, 42, 51, 0.14);
+  --glass-text: var(--ink);
+  --glass-text-soft: var(--ink-soft);
+  --ink-on-photo: var(--ink);
+  --ink-soft-on-photo: var(--ink-soft);
+  --glass-filter: saturate(180%) blur(18px);
+}
+
 .explore {
   position: relative;
   z-index: 0;
@@ -166,7 +203,7 @@ watch(
 }
 
 .back {
-  color: var(--ink-on-photo);
+  color: var(--ink);
   font-weight: 700;
   font-size: 0.92rem;
 }
@@ -185,13 +222,15 @@ h1 {
   font-family: var(--font-display);
   font-size: clamp(1.8rem, 4vw, 2.5rem);
   line-height: 1.15;
-  color: var(--ink-on-photo);
+  color: var(--ink);
 }
 
 .lead {
   margin: 0.5rem 0 0;
   max-width: 42rem;
-  color: var(--ink-soft-on-photo);
+  color: var(--ink-soft);
+  font-size: 1rem;
+  line-height: 1.55;
 }
 
 .search-row {
@@ -204,11 +243,12 @@ h1 {
 .search-row input {
   border: none;
   padding: 0.9rem 1rem;
-  color: var(--ink-on-photo);
+  color: var(--ink);
+  font-size: 1rem;
 }
 
 .search-row input::placeholder {
-  color: var(--ink-soft-on-photo);
+  color: var(--ink-soft);
 }
 
 .channels {
@@ -220,12 +260,12 @@ h1 {
 
 .channel {
   border: 1px solid rgba(16, 42, 51, 0.14);
-  background: rgba(255, 255, 255, 0.55);
-  color: var(--ink-soft-on-photo);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ink-soft);
   border-radius: 999px;
   padding: 0.45rem 0.9rem;
   font-weight: 700;
-  font-size: 0.86rem;
+  font-size: 0.9rem;
   cursor: pointer;
 }
 
@@ -238,14 +278,16 @@ h1 {
 .warn {
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
-  color: var(--ink-soft-on-photo);
-  font-size: 0.88rem;
+  color: var(--ink);
+  font-size: 0.92rem;
+  line-height: 1.45;
 }
 
 .state {
   padding: 2.5rem 0;
   text-align: center;
-  color: var(--ink-soft-on-photo);
+  color: var(--ink-soft);
+  font-size: 1rem;
 }
 
 .grid {
@@ -261,8 +303,8 @@ h1 {
 .sources h2 {
   margin: 0 0 0.75rem;
   font-family: var(--font-display);
-  font-size: 1.15rem;
-  color: var(--ink-on-photo);
+  font-size: 1.2rem;
+  color: var(--ink);
 }
 
 .sources ul {
@@ -279,13 +321,33 @@ h1 {
 }
 
 .sources strong {
-  color: var(--ink-on-photo);
-  font-size: 0.92rem;
+  color: var(--ink);
+  font-size: 0.95rem;
 }
 
 .sources span {
-  color: var(--ink-soft-on-photo);
-  font-size: 0.82rem;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.explore :deep(.empty) {
+  background: transparent;
+  border-color: rgba(16, 42, 51, 0.18);
+}
+
+.explore :deep(.empty h3) {
+  color: var(--ink);
+}
+
+.explore :deep(.empty p) {
+  color: var(--ink-soft);
+  max-width: 36ch;
+  font-size: 0.95rem;
+}
+
+.explore :deep(.empty-mark) {
+  color: #0d5c54;
 }
 
 @media (max-width: 560px) {

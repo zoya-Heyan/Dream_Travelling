@@ -4,6 +4,10 @@ import RainEffect from '@/components/RainEffect.vue'
 </script>
 
 <template>
-  <RouterView />
+  <RouterView v-slot="{ Component, route }">
+    <KeepAlive include="ExploreView">
+      <component :is="Component" :key="route.name === 'explore' ? 'explore' : route.fullPath" />
+    </KeepAlive>
+  </RouterView>
   <RainEffect />
 </template>

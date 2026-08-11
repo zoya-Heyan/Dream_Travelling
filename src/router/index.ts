@@ -37,7 +37,12 @@ const router = createRouter({
       props: true,
     },
   ],
-  scrollBehavior() {
+  scrollBehavior(to, from, savedPosition) {
+    if (to.name === 'explore' && from.name === 'guide-detail') {
+      // ExploreView restores its own list scroll via the guides store.
+      return false
+    }
+    if (savedPosition) return savedPosition
     return { top: 0 }
   },
 })

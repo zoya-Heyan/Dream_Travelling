@@ -1,5 +1,5 @@
 import type { GuideItem, GuideKind } from '@/types/guide'
-import { fetchText } from './fetch'
+import { fetchRssHubText, fetchText } from './fetch'
 
 function textContent(node: Element | null): string {
   if (!node) return ''
@@ -101,5 +101,14 @@ function hashId(input: string): string {
 
 export async function fetchRssItems(url: string, options: ParseRssOptions): Promise<GuideItem[]> {
   const xml = await fetchText(url, { useProxy: true, cacheKey: `rss:${url}` })
+  return parseRssXml(xml, options)
+}
+
+/** Fetch via RSSHub mirrors (failover), then parse. */
+export async function fetchRssHubItems(
+  routePath: string,
+  options: ParseRssOptions,
+): Promise<GuideItem[]> {
+  const xml = await fetchRssHubText(routePath)
   return parseRssXml(xml, options)
 }
