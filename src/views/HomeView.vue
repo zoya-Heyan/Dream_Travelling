@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import AddTripSheet from '@/components/AddTripSheet.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import InkLandscape from '@/components/InkLandscape.vue'
 import type { LandscapeTheme } from '@/components/InkLandscape.vue'
 import TripCard from '@/components/TripCard.vue'
-import { useTripsStore } from '@/stores/trips'
+import { useTripsStore, type CreateTripInput } from '@/stores/trips'
 
 const THEME_KEY = 'dt-hero-theme'
 
 const store = useTripsStore()
 const router = useRouter()
 const importing = ref(false)
+const creating = ref(false)
+const tripSheetOpen = ref(false)
 const fileInput = ref<HTMLInputElement | null>(null)
 const homeEl = ref<HTMLElement | null>(null)
 const theme = ref<LandscapeTheme>('danxia')
@@ -110,6 +113,23 @@ function triggerImport(): void {
   fileInput.value?.click()
 }
 
+function openTripSheet(): void {
+  tripSheetOpen.value = true
+}
+
+async function onCreateTrip(payload: CreateTripInput): Promise<void> {
+  creating.value = true
+  try {
+    const trip = await store.createTrip(payload)
+    tripSheetOpen.value = false
+    await router.push(`/trips/${trip.id}`)
+  } catch {
+    alert('创建失败，请重试')
+  } finally {
+    creating.value = false
+  }
+}
+
 async function onImportFile(event: Event): Promise<void> {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
@@ -178,7 +198,7 @@ async function onImportFile(event: Event): Promise<void> {
           <h1>把旅途写成你自己的节奏</h1>
           <p class="lead">为旅行爱好者准备的攻略笔记本：按天编排景点、餐饮、交通与住宿。</p>
           <div class="cta-row">
-            <RouterLink class="btn btn-primary" to="/trips/new">开始做攻略</RouterLink>
+            <button type="button" class="btn btn-primary" @click="openTripSheet">添加行程</button>
             <button type="button" class="btn btn-secondary" :disabled="importing" @click="triggerImport">
               {{ importing ? '导入中…' : '导入 JSON' }}
             </button>
@@ -196,8 +216,18 @@ async function onImportFile(event: Event): Promise<void> {
       <section class="list-section">
         <div class="list-inner page photo-shell">
           <div class="section-head reveal-item reveal-head">
-            <h2>我的行程</h2>
-            <p v-if="store.trips.length">共 {{ store.trips.length }} 条</p>
+            <div>
+              <h2>我的行程</h2>
+              <p v-if="store.trips.length">共 {{ store.trips.length }} 条</p>
+            </div>
+            <button
+              v-if="store.trips.length"
+              type="button"
+              class="btn btn-primary add-trip-btn"
+              @click="openTripSheet"
+            >
+              添加行程
+            </button>
           </div>
 
           <div v-if="store.loading" class="loading reveal-item reveal-body">加载中…</div>
@@ -219,11 +249,18 @@ async function onImportFile(event: Event): Promise<void> {
           title="还没有行程"
             description="新建一条多日攻略，或导入之前导出的 JSON 备份。"
           >
-            <RouterLink class="btn btn-primary" to="/trips/new">新建行程</RouterLink>
+            <button type="button" class="btn btn-primary" @click="openTripSheet">添加行程</button>
           </EmptyState>
         </div>
       </section>
     </div>
+
+    <AddTripSheet
+      :open="tripSheetOpen"
+      :submitting="creating"
+      @close="tripSheetOpen = false"
+      @submit="onCreateTrip"
+    />
   </main>
 </template>
 
@@ -482,13 +519,17 @@ h1 {
   font-size: 1.7rem;
 }
 
-.section-head p,
+.section-head > div p,
 .loading {
   margin: 0;
   color: var(--ink-soft);
 }
 
-.home--ink .section-head p,
+.add-trip-btn {
+  flex-shrink: 0;
+}
+
+.home--ink .section-head > div p,
 .home--ink .loading {
   color: rgba(244, 255, 253, 0.72);
 }
