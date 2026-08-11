@@ -5,6 +5,7 @@ import DayTabs from '@/components/DayTabs.vue'
 import DestinationWeather from '@/components/DestinationWeather.vue'
 import HeroGlassBackdrop from '@/components/HeroGlassBackdrop.vue'
 import ItineraryTimeline from '@/components/ItineraryTimeline.vue'
+import RelatedGuides from '@/components/RelatedGuides.vue'
 import { useTripsStore, type ItemInput } from '@/stores/trips'
 import type { Item } from '@/types/trip'
 import { dayCount, formatDisplayDate } from '@/utils/dates'
@@ -179,6 +180,8 @@ function flashSaved(): void {
             @add="openCreate"
           />
         </section>
+
+        <RelatedGuides :destination="bundle.trip.destination" />
       </template>
     </div>
 

@@ -9,6 +9,17 @@ const router = createRouter({
       component: () => import('@/views/HomeView.vue'),
     },
     {
+      path: '/explore',
+      name: 'explore',
+      component: () => import('@/views/ExploreView.vue'),
+    },
+    {
+      path: '/explore/guide/:source/:id',
+      name: 'guide-detail',
+      component: () => import('@/views/GuideDetailView.vue'),
+      props: true,
+    },
+    {
       path: '/trips/new',
       name: 'trip-create',
       component: () => import('@/views/TripCreateView.vue'),
