@@ -9,4 +9,18 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  server: {
+    proxy: {
+      '/proxy/rsshub': {
+        target: 'https://rsshub.app',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/proxy\/rsshub/, ''),
+      },
+      '/proxy/google-news': {
+        target: 'https://news.google.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/proxy\/google-news/, ''),
+      },
+    },
+  },
 })

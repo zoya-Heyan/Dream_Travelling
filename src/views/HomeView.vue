@@ -220,14 +220,17 @@ async function onImportFile(event: Event): Promise<void> {
               <h2>我的行程</h2>
               <p v-if="store.trips.length">共 {{ store.trips.length }} 条</p>
             </div>
-            <button
-              v-if="store.trips.length"
-              type="button"
-              class="btn btn-primary add-trip-btn"
-              @click="openTripSheet"
-            >
-              添加行程
-            </button>
+            <div class="section-actions">
+              <RouterLink class="btn btn-secondary explore-link" to="/explore">资讯攻略</RouterLink>
+              <button
+                v-if="store.trips.length"
+                type="button"
+                class="btn btn-primary add-trip-btn"
+                @click="openTripSheet"
+              >
+                添加行程
+              </button>
+            </div>
           </div>
 
           <div v-if="store.loading" class="loading reveal-item reveal-body">加载中…</div>
@@ -511,6 +514,13 @@ h1 {
   justify-content: space-between;
   gap: 0.5rem;
   margin-bottom: 1.1rem;
+}
+
+.section-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  align-items: center;
 }
 
 .section-head h2 {
