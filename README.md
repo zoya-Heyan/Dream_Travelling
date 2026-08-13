@@ -21,6 +21,7 @@ npm run preview
 - 新建多日行程（自动生成 Day 1…N）
 - 拖拽排序条目，跨天移动
 - 行程预览、导出 JSON、复制纯文本
+- 行程地图：按地点查看当日或全程安排（Leaflet / OpenStreetMap）
 - 首页可导入 JSON 备份
 - 目的地天气：按选中行程日预报，也可查看当前实况（Open-Meteo）
 - **资讯与攻略浏览**（`/explore`）：聚合多渠道内容，支持按目的地搜索与频道筛选；Wikivoyage 可应用内阅读

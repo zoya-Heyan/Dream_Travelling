@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import DestinationWeather from '@/components/DestinationWeather.vue'
 import HeroGlassBackdrop from '@/components/HeroGlassBackdrop.vue'
+import TripMap from '@/components/TripMap.vue'
 import { useTripsStore } from '@/stores/trips'
 import { ITEM_TYPE_LABELS } from '@/types/trip'
 import { formatDisplayDate } from '@/utils/dates'
@@ -84,12 +85,22 @@ function itemsFor(dayId: string) {
             <span v-if="stats.totalCost > 0"> · 合计约 ¥{{ stats.totalCost }}</span>
           </p>
           <div class="actions">
+            <RouterLink class="btn btn-secondary" :to="`/trips/${id}/map`">查看地图</RouterLink>
             <button type="button" class="btn btn-secondary" @click="exportJson">导出 JSON</button>
             <button type="button" class="btn btn-primary" @click="copyText">
               {{ copied ? '已复制' : '复制纯文本' }}
             </button>
           </div>
         </header>
+
+        <TripMap
+          compact
+          class="overview-map"
+          :destination="bundle.trip.destination"
+          :items="bundle.items"
+          :days="bundle.days"
+          :expand-href="`/trips/${id}/map`"
+        />
 
         <section
           v-for="day in bundle.days"
@@ -176,6 +187,10 @@ h1 {
   flex-wrap: wrap;
   gap: 0.6rem;
   margin-top: 1.1rem;
+}
+
+.overview-map {
+  margin-top: 1.25rem;
 }
 
 .day-block {

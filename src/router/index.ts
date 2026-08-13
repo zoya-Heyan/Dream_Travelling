@@ -36,6 +36,12 @@ const router = createRouter({
       component: () => import('@/views/TripPreviewView.vue'),
       props: true,
     },
+    {
+      path: '/trips/:id/map',
+      name: 'trip-map',
+      component: () => import('@/views/TripMapView.vue'),
+      props: true,
+    },
   ],
   scrollBehavior(to, from, savedPosition) {
     if (to.name === 'explore' && from.name === 'guide-detail') {

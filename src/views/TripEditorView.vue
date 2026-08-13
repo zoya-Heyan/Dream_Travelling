@@ -6,6 +6,7 @@ import DestinationWeather from '@/components/DestinationWeather.vue'
 import HeroGlassBackdrop from '@/components/HeroGlassBackdrop.vue'
 import ItineraryTimeline from '@/components/ItineraryTimeline.vue'
 import RelatedGuides from '@/components/RelatedGuides.vue'
+import TripMap from '@/components/TripMap.vue'
 import { useTripsStore, type ItemInput } from '@/stores/trips'
 import type { Item } from '@/types/trip'
 import { dayCount, formatDisplayDate } from '@/utils/dates'
@@ -142,6 +143,7 @@ function flashSaved(): void {
           </div>
           <div class="top-actions">
             <span v-if="saveHint" class="save-hint">{{ saveHint }}</span>
+            <RouterLink class="btn btn-secondary" :to="`/trips/${id}/map`">地图</RouterLink>
             <RouterLink class="btn btn-secondary" :to="`/trips/${id}/preview`">预览</RouterLink>
             <button type="button" class="btn btn-primary" @click="openCreate">添加条目</button>
           </div>
@@ -153,6 +155,15 @@ function flashSaved(): void {
           <DestinationWeather
             :destination="bundle.trip.destination"
             :date="activeDay.date"
+          />
+
+          <TripMap
+            compact
+            class="day-map"
+            :destination="bundle.trip.destination"
+            :items="dayItems"
+            :days="bundle.days"
+            :expand-href="`/trips/${id}/map`"
           />
 
           <div class="day-note">
@@ -283,6 +294,10 @@ h1 {
 }
 
 .day-panel :deep(.weather) {
+  margin-bottom: 1rem;
+}
+
+.day-map {
   margin-bottom: 1rem;
 }
 

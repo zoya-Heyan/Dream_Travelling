@@ -1,3 +1,4 @@
+import { geocodeDestination } from '@/services/geocode'
 import { todayISO } from '@/utils/dates'
 
 export type WeatherMode = 'day' | 'current'
@@ -16,18 +17,6 @@ export interface DestinationWeather {
   humidity?: number
   windSpeed?: number
   precipitation?: number
-}
-
-interface GeocodingResult {
-  name: string
-  latitude: number
-  longitude: number
-  country?: string
-  admin1?: string
-}
-
-interface GeocodingResponse {
-  results?: GeocodingResult[]
 }
 
 interface CurrentForecastResponse {
@@ -55,7 +44,6 @@ interface DailyForecastResponse {
 
 const CACHE_TTL_MS = 10 * 60 * 1000
 
-const placeCache = new Map<string, { expiresAt: number; place: GeocodingResult; placeName: string }>()
 const weatherCache = new Map<string, { expiresAt: number; data: DestinationWeather }>()
 
 const WMO_LABELS: Record<number, string> = {
@@ -139,65 +127,6 @@ export function resolveRainIntensity(weather: {
     return 'moderate'
   }
   return 'light'
-}
-
-function formatPlaceName(result: GeocodingResult): string {
-  return [result.name, result.admin1, result.country].filter(Boolean).join(' · ')
-}
-
-function hasCjk(text: string): boolean {
-  return /[\u4e00-\u9fff]/.test(text)
-}
-
-/** Open-Meteo 对部分中文城市名不稳定（如「常州」失败、「常州市」成功），多试几个变体。 */
-function geocodeQueryVariants(destination: string): string[] {
-  const base = destination.trim()
-  const variants = [base]
-
-  if (hasCjk(base)) {
-    if (base.endsWith('市') && base.length > 1) {
-      variants.push(base.slice(0, -1))
-    } else if (!/[市县区]$/.test(base)) {
-      variants.push(`${base}市`)
-    }
-  }
-
-  return [...new Set(variants)]
-}
-
-async function geocodeOnce(name: string): Promise<GeocodingResult | null> {
-  const url = new URL('https://geocoding-api.open-meteo.com/v1/search')
-  url.searchParams.set('name', name)
-  url.searchParams.set('count', '5')
-  url.searchParams.set('language', 'zh')
-
-  const response = await fetch(url)
-  if (!response.ok) {
-    throw new Error('地理编码请求失败，请稍后重试')
-  }
-
-  const data = (await response.json()) as GeocodingResponse
-  return data.results?.[0] ?? null
-}
-
-async function resolvePlace(
-  destination: string,
-): Promise<{ place: GeocodingResult; placeName: string }> {
-  const key = destination.trim()
-  const cached = placeCache.get(key)
-  if (cached && cached.expiresAt > Date.now()) {
-    return { place: cached.place, placeName: cached.placeName }
-  }
-
-  for (const query of geocodeQueryVariants(key)) {
-    const place = await geocodeOnce(query)
-    if (place) {
-      const placeName = formatPlaceName(place)
-      placeCache.set(key, { place, placeName, expiresAt: Date.now() + CACHE_TTL_MS })
-      return { place, placeName }
-    }
-  }
-  throw new Error('找不到该地点，请检查目的地名称')
 }
 
 async function fetchCurrentWeather(
@@ -306,7 +235,7 @@ export async function fetchDestinationWeather(
   }
 
   try {
-    const { place, placeName } = await resolvePlace(key)
+    const { place, placeName } = await geocodeDestination(key)
 
     let data: DestinationWeather
     if (mode === 'current') {
